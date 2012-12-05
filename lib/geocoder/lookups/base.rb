@@ -53,6 +53,9 @@ module Geocoder
         protocol = "http#{'s' if Geocoder::Configuration.use_https}"
         proxy_name = "#{protocol}_proxy"
         if proxy = Geocoder::Configuration.send(proxy_name)
+          if proxy.kind_of?(Array)
+            proxy = proxy.sample
+          end  
           proxy_url = protocol + '://' + proxy
           begin
             uri = URI.parse(proxy_url)
