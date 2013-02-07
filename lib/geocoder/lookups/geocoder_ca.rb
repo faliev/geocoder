@@ -4,6 +4,14 @@ require "geocoder/results/geocoder_ca"
 module Geocoder::Lookup
   class GeocoderCa < Base
 
+    def name
+      "Geocoder.ca"
+    end
+
+    def query_url(query)
+      "#{protocol}://geocoder.ca/?" + url_query_string(query)
+    end
+
     private # ---------------------------------------------------------------
 
     def results(query)
@@ -19,12 +27,12 @@ module Geocoder::Lookup
     end
 
     def query_url_params(query)
-      params = super.merge(
+      params = {
         :geoit    => "xml",
         :jsonp    => 1,
         :callback => "test",
-        :auth     => Geocoder::Configuration.api_key
-      )
+        :auth     => configuration.api_key
+      }.merge(super)
       if query.reverse_geocode?
         lat,lon = query.coordinates
         params[:latt] = lat
@@ -36,10 +44,6 @@ module Geocoder::Lookup
         params[:showpostal] = 1
       end
       params
-    end
-
-    def query_url(query)
-      "http://geocoder.ca/?" + url_query_string(query)
     end
 
     def parse_raw_data(raw_data)

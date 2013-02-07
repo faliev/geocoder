@@ -4,8 +4,18 @@ require "geocoder/results/nominatim"
 module Geocoder::Lookup
   class Nominatim < Base
 
+    def name
+      "Nominatim"
+    end
+
     def map_link_url(coordinates)
       "http://www.openstreetmap.org/?lat=#{coordinates[0]}&lon=#{coordinates[1]}&zoom=15&layers=M"
+    end
+
+    def query_url(query)
+      method = query.reverse_geocode? ? "reverse" : "search"
+      host = configuration[:host] || "nominatim.openstreetmap.org"
+      "#{protocol}://#{host}/#{method}?" + url_query_string(query)
     end
 
     private # ---------------------------------------------------------------
@@ -16,12 +26,12 @@ module Geocoder::Lookup
     end
 
     def query_url_params(query)
-      params = super.merge(
+      params = {
         :format => "json",
         :polygon => "1",
         :addressdetails => "1",
-        :"accept-language" => Geocoder::Configuration.language
-      )
+        :"accept-language" => configuration.language
+      }.merge(super)
       if query.reverse_geocode?
         lat,lon = query.coordinates
         params[:lat] = lat
@@ -30,11 +40,6 @@ module Geocoder::Lookup
         params[:q] = query.sanitized_text
       end
       params
-    end
-
-    def query_url(query)
-      method = query.reverse_geocode? ? "reverse" : "search"
-      "http://nominatim.openstreetmap.org/#{method}?" + url_query_string(query)
     end
   end
 end

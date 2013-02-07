@@ -4,8 +4,16 @@ require "geocoder/results/google"
 module Geocoder::Lookup
   class Google < Base
 
+    def name
+      "Google"
+    end
+
     def map_link_url(coordinates)
       "http://maps.google.com/maps?q=#{coordinates.join(',')}"
+    end
+
+    def query_url(query)
+      "#{protocol}://maps.googleapis.com/maps/api/geocode/json?" + url_query_string(query)
     end
 
     private # ---------------------------------------------------------------
@@ -31,23 +39,24 @@ module Geocoder::Lookup
       params = {
         (query.reverse_geocode? ? :latlng : :address) => query.sanitized_text,
         :sensor => "false",
-        :language => Geocoder::Configuration.language
+        :language => configuration.language
       }
       unless (bounds = query.options[:bounds]).nil?
         params[:bounds] = bounds.map{ |point| "%f,%f" % point }.join('|')
+      end
+      unless (region = query.options[:region]).nil?
+        params[:region] = region
+      end
+      unless (components = query.options[:components]).nil?
+        params[:components] = components.is_a?(Array) ? components.join("|") : components
       end
       params
     end
 
     def query_url_params(query)
-      super.merge(query_url_google_params(query)).merge(
-        :key => Geocoder::Configuration.api_key
-      )
-    end
-
-    def query_url(query)
-      "#{protocol}://maps.googleapis.com/maps/api/geocode/json?" + url_query_string(query)
+      query_url_google_params(query).merge(
+        :key => configuration.api_key
+      ).merge(super)
     end
   end
 end
-
