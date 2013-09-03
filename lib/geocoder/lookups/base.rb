@@ -92,7 +92,7 @@ module Geocoder
         if proxy = configuration.send(proxy_name)
           
           if proxy.kind_of?(Array)
-            proxy = proxy.sample
+            proxy = proxy.secure_sample
           end  
           
           proxy_url = protocol + '://' + proxy
